@@ -1,6 +1,10 @@
 pipeline {
   agent any
-  environment { VIRTUAL_ENV = 'venv' }
+
+  environment {
+    VIRTUAL_ENV = 'venv'
+    PYTHONPATH = "${WORKSPACE}"
+  }
 
   stages {
     stage('Setup') {
@@ -8,7 +12,8 @@ pipeline {
         bat '''
           if not exist %VIRTUAL_ENV% python -m venv %VIRTUAL_ENV%
           call %VIRTUAL_ENV%\\Scripts\\activate
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
         '''
       }
     }
@@ -17,7 +22,7 @@ pipeline {
       steps {
         bat '''
           call %VIRTUAL_ENV%\\Scripts\\activate
-          flake8 app.py
+          python -m flake8 app.py
         '''
       }
     }
@@ -26,7 +31,7 @@ pipeline {
       steps {
         bat '''
           call %VIRTUAL_ENV%\\Scripts\\activate
-          pytest -q
+          python -m pytest -q
         '''
       }
     }
@@ -39,6 +44,8 @@ pipeline {
   }
 
   post {
-    always { cleanWs() }
+    always {
+      cleanWs()
+    }
   }
 }
